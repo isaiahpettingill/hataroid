@@ -748,9 +748,9 @@ void renderFrame(JNIEnv* env)
 				{
 					//float uTexSize[2] = { g_videoTex_width, g_videoTex_height };
 					//float uTexSizePow2[2] = { roundUpPower2(g_videoTex_width), roundUpPower2(g_videoTex_height) };
-					float uTexSize[2] = { g_surface_width, g_surface_height };
-					float uTexSizePow2[2] = { roundUpPower2(g_videoTex_width), roundUpPower2(g_videoTex_height) };
-					float uOutputSize[2] = { gScrWidth, gScrHeight };
+					float uTexSize[2] = { float(g_surface_width), float(g_surface_height) };
+					float uTexSizePow2[2] = { float(roundUpPower2(g_videoTex_width)), float(roundUpPower2(g_videoTex_height)) };
+					float uOutputSize[2] = { float(gScrWidth), float(gScrHeight) };
 
 
 					if (curShader->_paramHandles[RTShader::ShaderParam_TexSize] >= 0)

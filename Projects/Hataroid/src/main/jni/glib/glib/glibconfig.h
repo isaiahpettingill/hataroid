@@ -69,14 +69,19 @@ typedef unsigned __int64 guint64;
 #define G_GINT64_FORMAT "I64i"
 #define G_GUINT64_FORMAT "I64u"
 
-#if defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64)
+#if defined(_WIN64) || defined(_M_X64) || defined(_M_AMD64) || (defined(__ANDROID__) && __SIZEOF_POINTER__ == 8)
 
 #define GLIB_SIZEOF_VOID_P 8
-#define GLIB_SIZEOF_LONG   4
+#define GLIB_SIZEOF_LONG   __SIZEOF_LONG__
 #define GLIB_SIZEOF_SIZE_T 8
 
+#if defined(__ANDROID__)
+typedef signed long gssize;
+typedef unsigned long gsize;
+#else
 typedef signed long long gssize;
 typedef unsigned long long gsize;
+#endif
 #define G_GSIZE_MODIFIER "I64"
 #define G_GSSIZE_FORMAT "I64d"
 #define G_GSIZE_FORMAT "I64u"
@@ -112,7 +117,7 @@ typedef gint64 goffset;
 #define G_GOFFSET_CONSTANT(val) G_GINT64_CONSTANT(val)
 
 
-#ifndef _WIN64
+#if !defined(_WIN64) && !(defined(__ANDROID__) && __SIZEOF_POINTER__ == 8)
 
 #define GPOINTER_TO_INT(p)	((gint)   (p))
 #define GPOINTER_TO_UINT(p)	((guint)  (p))
@@ -254,7 +259,11 @@ typedef unsigned __int64 guintptr;
  * but on Windows a GPid is a handle to a process, a kind of pointer,
  * not a process identifier.
  */
+#if defined(__ANDROID__)
+typedef int GPid;
+#else
 typedef void * GPid;
+#endif
 
 #define GLIB_SYSDEF_AF_UNIX 1
 #define GLIB_SYSDEF_AF_INET 2
@@ -277,7 +286,11 @@ typedef void * GPid;
 #define GLIB_INTERFACE_AGE 0
 #define GLIB_BINARY_AGE 0
 
+#if defined(__ANDROID__)
+#define HAVE_PTHREAD_CONDATTR_SETCLOCK 1
+#else
 #define HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP 1
+#endif
 
 #define HAVE_GOOD_PRINTF 1
 

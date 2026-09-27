@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <sound.h>
+#include <fdc.h>
 #include <statusbar.h>
 
 #include "hataroid.h"

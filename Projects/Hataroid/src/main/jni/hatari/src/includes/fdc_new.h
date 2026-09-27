@@ -59,4 +59,7 @@ extern void	FDC_WriteDMAAddress_New ( Uint32 Address );
 extern void	FDC_FloppyMode_ReadByte_New ( void );
 extern void	FDC_FloppyMode_WriteByte_New ( void );
 
+extern int FDC_Get_CurTrack_New(void);
+extern bool FDC_Get_HasActiveCommands_New(void);
+
 #endif /* ifndef HATARI_FDC_NEW_H */

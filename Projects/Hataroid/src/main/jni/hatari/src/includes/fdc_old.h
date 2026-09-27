@@ -58,4 +58,7 @@ extern void	FDC_WriteDMAAddress_Old ( Uint32 Address );
 extern void	FDC_FloppyMode_ReadByte_Old ( void );
 extern void	FDC_FloppyMode_WriteByte_Old ( void );
 
+extern int FDC_Get_CurTrack_Old(void);
+extern bool FDC_Get_HasActiveCommands_Old(void);
+
 #endif /* ifndef HATARI_FDC_OLD_H */

@@ -1,3 +1,5 @@
+MY_LOCAL_CFLAGS :=
+MY_LOCAL_ARM_MODE :=
 MY_DEBUG := false
 MY_APP_MANIFEST := $(strip $(wildcard $(APP_PROJECT_PATH)/AndroidManifest.xml))
 ifdef MY_APP_MANIFEST

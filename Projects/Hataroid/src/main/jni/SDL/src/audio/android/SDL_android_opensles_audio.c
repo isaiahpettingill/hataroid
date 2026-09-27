@@ -442,7 +442,7 @@ static int createBufferQueueAudioPlayer(_THIS, SDL_AudioSpec *spec)
 
 		spec->fillSize = reqBufSize;
 		{
-			int samplesPerFrame = spec->userdata; // hack data passing
+			int samplesPerFrame = (int)(intptr_t)spec->userdata; // hack data passing
 			int bytesPerFrame = samplesPerFrame * (reqChannels * (reqBits/8));
 			spec->userdata = 0;
 

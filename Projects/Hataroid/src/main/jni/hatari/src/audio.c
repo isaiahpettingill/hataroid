@@ -184,7 +184,7 @@ void Audio_Init(void)
 	desiredAudioSpec.format = AUDIO_S16SYS;		/* 16-Bit signed */
 	desiredAudioSpec.channels = 2;			/* stereo */
 	desiredAudioSpec.callback = Audio_CallBack;
-	desiredAudioSpec.userdata = nSamplesPerFrame;
+	desiredAudioSpec.userdata = NULL;	/* callback does not use userdata */
 
 	/* In most case, setting samples to 1024 will give an equivalent */
 	/* sdl sound buffer of ~20-30 ms (depending on freq). */
