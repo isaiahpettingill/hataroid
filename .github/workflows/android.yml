@@ -58,6 +58,9 @@ jobs:
           gradle :Hataroid:assembleRelease -PandroidCompileSdk=36 --no-daemon
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose Projects/Hataroid/build/outputs/apk/release/Hataroid-release.apk
           "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 Projects/Hataroid/build/outputs/apk/release/Hataroid-release.apk
+      - name: Allow emulator hardware acceleration
+        if: github.event_name == 'pull_request'
+        run: sudo chmod a+rw /dev/kvm
       - name: Launch on Android emulator
         if: github.event_name == 'pull_request'
         timeout-minutes: 12
