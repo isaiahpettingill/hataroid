@@ -2,6 +2,7 @@ plugins { id 'com.android.application' }
 
 android {
     namespace 'com.RetroSoft.Hataroid'
+    lint { disable 'ExpiredTargetSdkVersion' }
     compileSdk Integer.parseInt(findProperty('androidCompileSdk') ?: '36')
     buildToolsVersion '35.0.0'
 
