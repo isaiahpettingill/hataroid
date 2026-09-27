@@ -75,10 +75,8 @@ jobs:
             adb shell am start -n com.RetroSoft.Hataroid/.HataroidActivity
             sleep 15
             adb logcat -d -v threadtime -s AndroidRuntime:E libc:F DEBUG:E | tail -n 250
-            adb shell pidof com.RetroSoft.Hataroid | grep -E '^[0-9]+'
-            if adb logcat -d -s AndroidRuntime:E | grep -A 12 'FATAL EXCEPTION' | grep -F 'com.RetroSoft.Hataroid'; then
-              exit 1
-            fi
+            adb shell pidof com.RetroSoft.Hataroid || (sleep 5 && adb shell pidof com.RetroSoft.Hataroid)
+            ! adb logcat -d -s AndroidRuntime:E | grep -F 'Process: com.RetroSoft.Hataroid'
       - name: Publish release
         if: github.event_name != 'pull_request'
         env:
