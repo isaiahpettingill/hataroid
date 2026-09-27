@@ -9,7 +9,7 @@
 const char Audio_fileid[] = "Hatari audio.c : " __DATE__ " " __TIME__;
 
 #include <SDL.h>
-#include <JNI.h>
+#include <jni.h>
 
 #include "main.h"
 #include "audio.h"
