@@ -36,6 +36,21 @@ jobs:
         with:
           name: hataroid-debug
           path: Projects/Hataroid/build/outputs/apk/debug/Hataroid-debug.apk
+      - name: Launch on Android emulator
+        if: github.event_name == 'pull_request'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          script: |
+            adb install Projects/Hataroid/build/outputs/apk/debug/Hataroid-debug.apk
+            adb shell am start -n com.RetroSoft.Hataroid/.HataroidActivity
+            sleep 15
+            adb shell pidof com.RetroSoft.Hataroid | grep -E '^[0-9]+'
+            if adb logcat -d -s AndroidRuntime:E | grep -A 12 'FATAL EXCEPTION' | grep -F 'com.RetroSoft.Hataroid'; then
+              exit 1
+            fi
       - name: Build signed release
         env:
           HATAROID_KEYSTORE_B64: ${{ secrets.HATAROID_KEYSTORE_B64 }}
