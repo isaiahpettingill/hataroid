@@ -75,6 +75,9 @@ jobs:
             adb shell am start -n com.RetroSoft.Hataroid/.HataroidActivity
             sleep 15
             adb logcat -d -v threadtime -s AndroidRuntime:E libc:F DEBUG:E | tail -n 250
+            adb logcat -d -v brief -s ActivityTaskManager:I ActivityManager:I | grep -i 'hataroid' | tail -n 70 || true
+            adb shell dumpsys activity activities | grep -i 'hataroid' | tail -n 30 || true
+            adb shell ps -A | grep -i 'hataroid' || true
             adb shell pidof com.RetroSoft.Hataroid || (sleep 5 && adb shell pidof com.RetroSoft.Hataroid)
             ! adb logcat -d -s AndroidRuntime:E | grep -F 'Process: com.RetroSoft.Hataroid'
       - name: Publish release
