@@ -3,6 +3,7 @@ package com.RetroSoft.Hataroid;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -27,12 +28,15 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.XmlResourceParser;
+import android.database.Cursor;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -41,6 +45,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.RetroSoft.Hataroid.FileBrowser.FileBrowser;
 import com.RetroSoft.Hataroid.GameDB.GameDBHelper;
@@ -1371,8 +1376,79 @@ public class HataroidActivity extends Activity implements IGameDBScanner
 		}
 	}
 
+	private void openFloppyPicker(int requestCode)
+	{
+		if (Build.VERSION.SDK_INT >= 33)
+		{
+			Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+			picker.addCategory(Intent.CATEGORY_OPENABLE);
+			picker.setType("*/*");
+			startActivityForResult(picker, requestCode);
+		}
+		else
+		{
+			Intent browser = new Intent(this, FileBrowser.class);
+			browser.putExtra(FileBrowser.CONFIG_REFRESHDB, true);
+			browser.putExtra(FileBrowser.CONFIG_TITLE, getString(R.string.select_floppy));
+			browser.putExtra(FileBrowser.CONFIG_CHECKPASTI, true);
+			startActivityForResult(browser, requestCode);
+		}
+	}
+
+	private Intent importFloppy(Uri uri, int requestCode) throws IOException
+	{
+		String name = null;
+		try (Cursor cursor = getContentResolver().query(uri, new String[] { OpenableColumns.DISPLAY_NAME }, null, null, null))
+		{
+			if (cursor != null && cursor.moveToFirst()) name = cursor.getString(0);
+		}
+		if (name == null) name = "floppy.st";
+		name = name.substring(name.lastIndexOf('/') + 1).replace('\\', '_');
+		int dot = name.lastIndexOf('.');
+		String extension = dot >= 0 ? name.substring(dot).toLowerCase(java.util.Locale.ROOT) : ".st";
+		if (!extension.matches("\\.[a-z0-9]{1,5}")) extension = ".st";
+		File directory = new File(getFilesDir(), "ImportedDisks");
+		if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Cannot create disk directory");
+		File destination = File.createTempFile("floppy-" + requestCode + "-", extension, directory);
+		try (InputStream input = getContentResolver().openInputStream(uri);
+		     FileOutputStream output = new FileOutputStream(destination))
+		{
+			if (input == null) throw new IOException("Cannot open selected disk");
+			byte[] buffer = new byte[8192];
+			int bytes;
+			long total = 0;
+			while ((bytes = input.read(buffer)) != -1)
+			{
+				total += bytes;
+				if (total > 64L * 1024 * 1024) throw new IOException("Disk image is too large");
+				output.write(buffer, 0, bytes);
+			}
+		}
+		catch (IOException | RuntimeException error)
+		{
+			destination.delete();
+			throw error;
+		}
+		Intent result = new Intent();
+		result.putExtra(FileBrowser.RESULT_PATH, destination.getAbsolutePath());
+		result.putExtra(FileBrowser.RESULT_DISPLAYNAME, name);
+		if (extension.equals(".stx")) result.putExtra(FileBrowser.RESULT_RESETCOLD, true);
+		return result;
+	}
+
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		if ((requestCode == ACTIVITYRESULT_FLOPPYA || requestCode == ACTIVITYRESULT_FLOPPYB)
+				&& resultCode == RESULT_OK && data != null && data.getData() != null)
+		{
+			try { data = importFloppy(data.getData(), requestCode); }
+			catch (IOException | RuntimeException error)
+			{
+				Log.e("HataroidActivity", "Could not import floppy", error);
+				Toast.makeText(this, "Could not open disk image", Toast.LENGTH_LONG).show();
+				return;
+			}
+		}
 		switch (requestCode)
 		{
 			case ACTIVITYRESULT_FLOPPYA:
@@ -1639,11 +1715,7 @@ public class HataroidActivity extends Activity implements IGameDBScanner
 	{
 		this.runOnUiThread(new Runnable() {
 			public void run() {
-				Intent fileBrowser = new Intent(HataroidActivity.instance, FileBrowser.class);
-				fileBrowser.putExtra(FileBrowser.CONFIG_REFRESHDB, true);
-				fileBrowser.putExtra(FileBrowser.CONFIG_TITLE, getApplicationContext().getString(R.string.select_floppy));
-				fileBrowser.putExtra(FileBrowser.CONFIG_CHECKPASTI, true);
-				startActivityForResult(fileBrowser, ACTIVITYRESULT_FLOPPYA);
+				openFloppyPicker(ACTIVITYRESULT_FLOPPYA);
 			}
 		});
 	}
@@ -1652,11 +1724,7 @@ public class HataroidActivity extends Activity implements IGameDBScanner
 	{
 		this.runOnUiThread(new Runnable() {
 			public void run() {
-				Intent fileBrowser = new Intent(HataroidActivity.instance, FileBrowser.class);
-				fileBrowser.putExtra(FileBrowser.CONFIG_REFRESHDB, true);
-				fileBrowser.putExtra(FileBrowser.CONFIG_TITLE, getApplicationContext().getString(R.string.select_floppy));
-				fileBrowser.putExtra(FileBrowser.CONFIG_CHECKPASTI, true);
-				startActivityForResult(fileBrowser, ACTIVITYRESULT_FLOPPYB);
+				openFloppyPicker(ACTIVITYRESULT_FLOPPYB);
 			}
 		});
 	}
@@ -2184,11 +2252,7 @@ public class HataroidActivity extends Activity implements IGameDBScanner
 			case R.id.floppya:
 			case R.id.floppyb:
 			{
-				Intent fileBrowser = new Intent(this, FileBrowser.class);
-				fileBrowser.putExtra(FileBrowser.CONFIG_REFRESHDB, true);
-				fileBrowser.putExtra(FileBrowser.CONFIG_TITLE, getApplicationContext().getString(R.string.select_floppy));
-				fileBrowser.putExtra(FileBrowser.CONFIG_CHECKPASTI, true);
-				startActivityForResult(fileBrowser, (id==R.id.floppya)?ACTIVITYRESULT_FLOPPYA:ACTIVITYRESULT_FLOPPYB);
+				openFloppyPicker((id==R.id.floppya)?ACTIVITYRESULT_FLOPPYA:ACTIVITYRESULT_FLOPPYB);
 				return true;
 			}
 			case R.id.ejecta:
