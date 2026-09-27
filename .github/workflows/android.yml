@@ -75,6 +75,8 @@ jobs:
             adb shell am start -n com.RetroSoft.Hataroid/.HataroidActivity
             sleep 15
             adb logcat -d -v threadtime -s AndroidRuntime:E libc:F DEBUG:E | tail -n 250
+            adb logcat -b all -d -v threadtime | grep -Ei 'Hataroid|fatal signal|tombstone|crash_dump|lowmemorykiller' | tail -n 160 || true
+            adb shell dumpsys activity exit-info com.RetroSoft.Hataroid | tail -n 100 || true
             adb logcat -d -v brief -s ActivityTaskManager:I ActivityManager:I | grep -i 'hataroid' | tail -n 70 || true
             adb shell dumpsys activity activities | grep -i 'hataroid' | tail -n 30 || true
             adb shell ps -A | grep -i 'hataroid' || true
