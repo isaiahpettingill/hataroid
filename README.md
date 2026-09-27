@@ -5,6 +5,9 @@ Hataroid is an Android Atari ST emulator based on Hatari. This fork builds a
 ROM is selected by default; you may select another TOS ROM in Settings. EmuTOS
 is GPLv2-licensed and is already included in the upstream assets.
 
+On Android 13 and newer, insert floppy through the system file picker. Hataroid
+imports a private copy of the disk image; changes to that disk stay in the copy.
+
 GitHub Actions builds on every pull request, master push, and monthly check.
 A signed APK is attached to each successful [release](https://github.com/isaiahpettingill/hataroid/releases).
 The signing key is stored in private repository Actions secrets and should be
