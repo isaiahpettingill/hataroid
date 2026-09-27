@@ -37,21 +37,24 @@ jobs:
           name: hataroid-debug
           path: Projects/Hataroid/build/outputs/apk/debug/Hataroid-debug.apk
       - name: Build signed release
-        if: github.event_name != 'pull_request'
         env:
           HATAROID_KEYSTORE_B64: ${{ secrets.HATAROID_KEYSTORE_B64 }}
-          HATAROID_STORE_PASSWORD: ${{ secrets.HATAROID_STORE_PASSWORD }}
-          HATAROID_KEY_ALIAS: ${{ secrets.HATAROID_KEY_ALIAS }}
-          HATAROID_KEY_PASSWORD: ${{ secrets.HATAROID_KEY_PASSWORD }}
+          HATAROID_STORE_PASSWORD: ${{ github.event_name == 'pull_request' && 'temporary-ci-password' || secrets.HATAROID_STORE_PASSWORD }}
+          HATAROID_KEY_ALIAS: ${{ github.event_name == 'pull_request' && 'ci-only' || secrets.HATAROID_KEY_ALIAS }}
+          HATAROID_KEY_PASSWORD: ${{ github.event_name == 'pull_request' && 'temporary-ci-password' || secrets.HATAROID_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "$HATAROID_KEYSTORE_B64" || -z "$HATAROID_STORE_PASSWORD" || -z "$HATAROID_KEY_ALIAS" || -z "$HATAROID_KEY_PASSWORD" ]]; then
-            echo 'Set the HATAROID_* signing secrets with scripts/setup-signing.sh.' >&2
-            exit 1
-          fi
           export HATAROID_KEYSTORE="$RUNNER_TEMP/hataroid-release.p12"
-          printf '%s' "$HATAROID_KEYSTORE_B64" | base64 --decode > "$HATAROID_KEYSTORE"
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            keytool -genkeypair -noprompt -storetype PKCS12 -keystore "$HATAROID_KEYSTORE" -alias "$HATAROID_KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 1 -dname 'CN=CI only' -storepass "$HATAROID_STORE_PASSWORD" -keypass "$HATAROID_KEY_PASSWORD"
+          else
+            if [[ -z "$HATAROID_KEYSTORE_B64" || -z "$HATAROID_STORE_PASSWORD" || -z "$HATAROID_KEY_ALIAS" || -z "$HATAROID_KEY_PASSWORD" ]]; then
+              echo 'Set the HATAROID_* signing secrets with scripts/setup-signing.sh.' >&2
+              exit 1
+            fi
+            printf '%s' "$HATAROID_KEYSTORE_B64" | base64 --decode > "$HATAROID_KEYSTORE"
+          fi
           gradle :Hataroid:assembleRelease -PandroidCompileSdk=36 --no-daemon
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose Projects/Hataroid/build/outputs/apk/release/Hataroid-release.apk
           "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 Projects/Hataroid/build/outputs/apk/release/Hataroid-release.apk
