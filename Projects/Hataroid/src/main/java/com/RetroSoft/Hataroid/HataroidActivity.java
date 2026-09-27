@@ -2290,7 +2290,7 @@ public class HataroidActivity extends Activity implements IGameDBScanner
 
 	boolean checkPermissions()
 	{
-		if (Build.VERSION.SDK_INT >= 23)
+		if (Build.VERSION.SDK_INT >= 23 && Build.VERSION.SDK_INT < 33)
 		{
 			if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 			{

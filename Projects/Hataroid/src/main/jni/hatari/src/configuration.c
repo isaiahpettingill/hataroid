@@ -717,7 +717,7 @@ void Configuration_SetDefault(void)
 
 		ConfigureParams.Hataroid.mouseActive = false;
 
-        ConfigureParams.Hataroid.useEmuTOS = false;
+        ConfigureParams.Hataroid.useEmuTOS = true;
 
         ConfigureParams.Hataroid.legacyFloppy = false;
 	}
