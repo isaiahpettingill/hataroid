@@ -20,6 +20,7 @@
     slouken@libsdl.org
 */
 #include "SDL_config.h"
+#include "hataroid.h"
 
 /* Allow access to a raw mixing buffer */
 
@@ -763,4 +764,3 @@ void SDL_Audio_SetCaption(const char *caption)
 		current_audio->SetCaption(current_audio, caption);
 	}
 }
-

@@ -2867,7 +2867,7 @@ g_strcmp0 (const char     *str1,
 //// *
 //// * Since: 2.38
 //// */
-//gboolean
+gboolean
 g_test_subprocess (void)
 {
   return test_in_subprocess;

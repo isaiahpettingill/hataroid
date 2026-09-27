@@ -20,6 +20,7 @@
     slouken@libsdl.org
 */
 #include "SDL_config.h"
+#include "hataroid.h"
 #include "SDL_thread.h"
 
 #include "SDL_video.h"

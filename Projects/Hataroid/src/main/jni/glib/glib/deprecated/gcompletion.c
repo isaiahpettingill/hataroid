@@ -121,6 +121,11 @@ static void completion_check_cache (GCompletion* cmp,
  *
  * Returns: the new #GCompletion.
  **/
+static gint completion_strncmp (const gchar *s1, const gchar *s2, gsize n)
+{
+  return strncmp (s1, s2, n);
+}
+
 GCompletion* 
 g_completion_new (GCompletionFunc func)
 {
@@ -131,7 +136,7 @@ g_completion_new (GCompletionFunc func)
   gcomp->cache = NULL;
   gcomp->prefix = NULL;
   gcomp->func = func;
-  gcomp->strncmp_func = strncmp;
+  gcomp->strncmp_func = completion_strncmp;
 
   return gcomp;
 }

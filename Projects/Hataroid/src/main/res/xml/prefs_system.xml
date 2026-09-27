@@ -40,7 +40,7 @@
 			android:title="@string/emutos"
 			android:summaryOn="@string/emutos_summary"
 			android:summaryOff="@string/emutos_summary"
-			android:defaultValue="false" />
+			android:defaultValue="true" />
 		<Preference
 			android:persistent="true"
 			android:key="pref_system_tos"

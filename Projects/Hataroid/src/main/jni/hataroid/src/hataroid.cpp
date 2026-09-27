@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 
 #include <sys/types.h>
@@ -245,7 +246,7 @@ static void _deinitPerfMon()
 //---------------
 
 #ifdef __clang__
-	clang generates slower code atm
+	// clang generates slower code for this legacy path
 #else
 #ifdef __GNUC__
 	//gcc
@@ -2241,7 +2242,7 @@ void EmuCommandEjectFloppy_Run(EmuCommand *command)
 	Debug_Printf("----> Eject Floppy");
 	Main_PauseEmulation(false);
 
-	int floppyID = (int)command->data;
+	int floppyID = (int)(intptr_t)command->data;
 
 	Floppy_SetDiskFileNameNone(floppyID);
 	ConfigureParams.DiskImage.szDiskZipPath[floppyID][0] = '\0';

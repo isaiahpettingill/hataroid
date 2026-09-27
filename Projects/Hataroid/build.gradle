@@ -1,54 +1,62 @@
-import org.apache.tools.ant.taskdefs.condition.Os
-
-apply plugin: 'com.android.application'
-
-dependencies {
-	compile project(':MIDIDriver')
-	//compile 'com.android.support:appcompat-v7:23.2.1'
-	//compile 'com.android.support:design:23.2.1'
-	//compile 'com.android.support:support-v4:23.2.1'
-	compile 'com.android.support:support-v4:24.2.1'
-	compile 'com.android.support:leanback-v17:24.2.1'
-}
+plugins { id 'com.android.application' }
 
 android {
-	compileSdkVersion 26
-	buildToolsVersion '25.0.2'
-	defaultConfig {
-		applicationId "com.RetroSoft.Hataroid"
-		minSdkVersion 9
-		targetSdkVersion 26
-		compileOptions {
-			sourceCompatibility JavaVersion.VERSION_1_6
-			targetCompatibility JavaVersion.VERSION_1_6
-		}
-		vectorDrawables.useSupportLibrary = true
-	}
-	sourceSets.main {
-		jniLibs.srcDir 'build/libs'
-		jni.srcDirs = [] //disable automatic ndk-build call
-	}
-	// call regular ndk-build(.cmd) script from app directory
-	task ndkBuild(type: Exec) {
-		def ndkDir = android.ndkDirectory
-		//project.plugins.findPlugin('com.android.application').getNdkFolder()
-		def ndkBuildCmd = "$ndkDir/ndk-build"
+    namespace 'com.RetroSoft.Hataroid'
+    compileSdk Integer.parseInt(findProperty('androidCompileSdk') ?: '36')
+    buildToolsVersion '35.0.0'
 
-		if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-			ndkBuildCmd = "$ndkBuildCmd" + ".cmd"
-		}
+    defaultConfig {
+        applicationId 'com.RetroSoft.Hataroid'
+        minSdk 23
+        // Preserve filesystem access for the legacy disk browser.
+        targetSdk 28
+        versionCode 1851
+        versionName '1.851'
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
+    }
 
-		commandLine "$ndkBuildCmd", '-j8', 'NDK_PROJECT_PATH=build', 'APP_PROJECT_PATH=src/main', 'APP_BUILD_SCRIPT=src/main/jni/Android.mk', 'NDK_APPLICATION_MK=src/main/jni/Application.mk'
-	}
-	tasks.withType(JavaCompile) {
-		compileTask -> compileTask.dependsOn ndkBuild
-	}
-	buildTypes {
-		release {
-			minifyEnabled false
-			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-		}
-	}
-	productFlavors {
-	}
+    sourceSets.main {
+        jniLibs.srcDir 'build/libs'
+        jni.srcDirs = []
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        release {
+            if (System.getenv('HATAROID_KEYSTORE')) {
+                storeFile file(System.getenv('HATAROID_KEYSTORE'))
+                storePassword System.getenv('HATAROID_STORE_PASSWORD')
+                keyAlias System.getenv('HATAROID_KEY_ALIAS')
+                keyPassword System.getenv('HATAROID_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (System.getenv('HATAROID_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+}
+
+tasks.register('ndkBuild', Exec) {
+    def ndkHome = System.getenv('ANDROID_NDK_HOME') ?: "${android.sdkDirectory}/ndk/27.2.12479018"
+    workingDir projectDir
+    commandLine "${ndkHome}/ndk-build", '-j4', 'NDK_PROJECT_PATH=build',
+        'APP_PROJECT_PATH=src/main', 'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+        'NDK_APPLICATION_MK=src/main/jni/Application.mk',
+        'NDK_OUT=build/obj', 'NDK_LIBS_OUT=build/libs'
+    inputs.dir 'src/main/jni'
+    outputs.dir 'build/libs'
+}
+tasks.configureEach { if (name.startsWith('merge') && name.endsWith('JniLibFolders')) dependsOn tasks.named('ndkBuild') }
+
+dependencies {
+    implementation project(':MIDIDriver')
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:leanback-v17:28.0.0'
 }

@@ -3,7 +3,7 @@
 #include "gui-android.h"
 #include "reset.h"
 
-//#include <unistd.h>
+#include <unistd.h>
 #include <hataroid.h>
 
 int DlgAlert_Notice(const char *text)
